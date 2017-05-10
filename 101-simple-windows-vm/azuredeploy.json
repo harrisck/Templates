@@ -26,21 +26,36 @@
         "description": "Unique DNS Name for the Public IP used to access the Virtual Machine."
       }
     },
+    "location": {
+      "type": "string",
+      "defaulyValue": "West US",
+      "allowedValues": [
+        "West US"
+        "East US 2"
+      ],
+      "metadata": {
+        "description": "Restricts choices to where premium storage is in the US"
+      }
+    },
     "windowsOSVersion": {
       "type": "string",
       "defaultValue": "2012-R2-Datacenter",
       "allowedValues": [
         "2008-R2-SP1",
         "2012-Datacenter",
-        "2012-R2-Datacenter"
+        "2012-R2-Datacenter"     
       ],
       "metadata": {
         "description": "The Windows version for the VM. This will pick a fully patched image of this given Windows version. Allowed values: 2008-R2-SP1, 2012-Datacenter, 2012-R2-Datacenter."
+      }, 
+      "sizeofeachdatadiskingb": {
+        "type": "string",
+        "metadata": {
+          "description": "Size of each data disk in GB"
+        }
       }
-    }
   },
   "variables": {
-    "location": "West US",
     "imagePublisher": "MicrosoftWindowsServer",
     "imageOffer": "WindowsServer",
     "OSDiskName": "osdiskforwindowssimple",
@@ -56,7 +71,8 @@
     "vmSize": "Standard_A2",
     "virtualNetworkName": "MyVNET",
     "vnetID": "[resourceId('Microsoft.Network/virtualNetworks',variables('virtualNetworkName'))]",
-    "subnetRef": "[concat(variables('vnetID'),'/subnets/',variables('subnetName'))]"
+    "subnetRef": "[concat(variables('vnetID'),'/subnets/',variables('subnetName'))]",
+    "datadisk1vhdname": "[concat(`http://,parameters(`newstorageaccountname`),`blob.core.windows.net/`,variables(`vmstorageaccountcontainername`)`/`,variables(`vmname`),datadisk1.vhd`)]"
   },
   "resources": [
     {
@@ -161,6 +177,18 @@
             "createOption": "FromImage"
           }
         },
+        "datadisks": [
+          {
+            "name": "datadisk1",
+            "disksizegb": "[parameters(`sizeofdiskingb`)]",
+            "lun": 0,
+            "vhd": {
+              "uri": "[variables(`datadisk1vhdname`)]"
+            },
+            "createoption": "Empty"
+          }
+        ]
+      },
         "networkProfile": {
           "networkInterfaces": [
             {
